@@ -132,14 +132,23 @@
 # define M_ATTR_NO_RETURN 
 #endif
 
-/* The cold attribute on functions is used to inform the compiler
-   that the function is unlikely to be executed. */
+/* The hot/cold attribute on functions is used to inform the compiler
+   that the function is likely/unlikely to be executed. */
 #if defined(__GNUC__)
+# define M_ATTR_HOT_FUNCTION     __attribute__ ((hot))
 # define M_ATTR_COLD_FUNCTION    __attribute__ ((cold))
 #else
+# define M_ATTR_HOT_FUNCTION
 # define M_ATTR_COLD_FUNCTION
 #endif
 
+
+/* Prefetch . */
+#if defined(__GNUC__)
+# define M_PREFETCH(p)           __builtin_prefetch((p), 0, 0)
+#else
+# define M_PREFETCH(p)           (void) 0
+#endif
 
 /* Ignore some warnings detected by some compilers in the library.
  * Whatever we do, there is some warnings that cannot be fixed.
@@ -2893,11 +2902,15 @@ M_PARSE_DEFAULT_TYPE_DEF(m_core_parse_ldouble, long double, strtold, )
 
 
 /* C++ doesn't support flexible array within a structure.
-   Let's define at least one element for an array. */
+   Let's define at least one element for an array.
+   It doesn't also support VLA usage in function prototype.
+ */
 #ifdef __cplusplus
 # define M_MIN_FLEX_ARRAY_SIZE 1
+# define M_VLA(n)
 #else
 # define M_MIN_FLEX_ARRAY_SIZE 
+# define M_VLA(n) n
 #endif
 
 #if M_USE_STDARG && M_USE_STDIO
